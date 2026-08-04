@@ -1,0 +1,12 @@
+# Runtime dependencies
+requests>=2.31
+beautifulsoup4>=4.12
+click>=8.1
+
+# Optional HTTP API (seometa/api.py)
+fastapi>=0.110
+uvicorn>=0.27
+
+# Development / testing
+pytest>=8.0
+ruff>=0.5
