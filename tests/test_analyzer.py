@@ -10,8 +10,8 @@ from pathlib import Path
 import pytest
 
 from seometa.analyzer import analyze_html, analyze_source, parse_page
-from seometa.rules import FAIL, PASS, WARN
 from seometa.report import render_console, render_json
+from seometa.rules import FAIL, PASS, WARN
 
 FIXTURES = Path(__file__).resolve().parent.parent / "fixtures"
 

@@ -14,8 +14,6 @@ FastAPI/uvicorn are optional extras; the CLI and library work without them.
 
 from __future__ import annotations
 
-from typing import Optional
-
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, model_validator
 
@@ -32,11 +30,11 @@ app = FastAPI(
 class AuditRequest(BaseModel):
     """Request body for ``POST /audit``. Provide exactly one of url or html."""
 
-    url: Optional[str] = None
-    html: Optional[str] = None
+    url: str | None = None
+    html: str | None = None
 
     @model_validator(mode="after")
-    def _exactly_one(self) -> "AuditRequest":
+    def _exactly_one(self) -> AuditRequest:
         if bool(self.url) == bool(self.html):
             raise ValueError("Provide exactly one of 'url' or 'html'.")
         return self

@@ -14,8 +14,8 @@ Status vocabulary:
 from __future__ import annotations
 
 import re
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Callable, Optional
 
 # --- Recommended length windows (characters) for text signals. ---
 TITLE_MIN, TITLE_MAX = 30, 60
@@ -35,17 +35,17 @@ class PageData:
     trivial to unit-test without touching the parser or the network.
     """
 
-    title: Optional[str] = None
-    meta_description: Optional[str] = None
-    canonical: Optional[str] = None
-    robots: Optional[str] = None
-    viewport: Optional[str] = None
+    title: str | None = None
+    meta_description: str | None = None
+    canonical: str | None = None
+    robots: str | None = None
+    viewport: str | None = None
     open_graph: dict[str, str] = field(default_factory=dict)
     twitter: dict[str, str] = field(default_factory=dict)
     # Headings in document order as (level, text), e.g. (1, "Home").
     headings: list[tuple[int, str]] = field(default_factory=list)
     # Images as {"src": str, "alt": Optional[str]}; alt is None when absent.
-    images: list[dict[str, Optional[str]]] = field(default_factory=list)
+    images: list[dict[str, str | None]] = field(default_factory=list)
 
 
 @dataclass
@@ -58,7 +58,7 @@ class Finding:
     score: float  # points awarded, 0..weight
     weight: int  # maximum points this check can contribute
     message: str  # what was observed
-    recommendation: Optional[str] = None  # how to fix it (None when passing)
+    recommendation: str | None = None  # how to fix it (None when passing)
 
     @property
     def priority(self) -> str:
@@ -77,7 +77,7 @@ def _finding(
     score: float,
     weight: int,
     message: str,
-    recommendation: Optional[str] = None,
+    recommendation: str | None = None,
 ) -> Finding:
     return Finding(
         id=id,
@@ -98,7 +98,7 @@ def check_title(page: PageData) -> Finding:
         return _finding(
             "title", "Title tag", FAIL, 0, weight,
             "No <title> tag found.",
-            "Add a descriptive <title> of %d-%d characters." % (TITLE_MIN, TITLE_MAX),
+            f"Add a descriptive <title> of {TITLE_MIN}-{TITLE_MAX} characters.",
         )
     length = len(title)
     if length < TITLE_MIN or length > TITLE_MAX:
