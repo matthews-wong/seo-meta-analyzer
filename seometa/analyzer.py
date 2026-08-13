@@ -10,7 +10,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
 
 from bs4 import BeautifulSoup
 
@@ -54,7 +53,7 @@ class AuditResult:
         )
 
 
-def _meta_content(soup: BeautifulSoup, *, name: str) -> Optional[str]:
+def _meta_content(soup: BeautifulSoup, *, name: str) -> str | None:
     """Return the content of ``<meta name=...>`` (case-insensitive), if present."""
     tag = soup.find("meta", attrs={"name": lambda v: v and v.lower() == name})
     if tag and tag.get("content") is not None:
@@ -96,7 +95,7 @@ def parse_page(html: str) -> PageData:
         level = _HEADING_TAGS[tag.name]
         headings.append((level, tag.get_text(strip=True)))
 
-    images: list[dict[str, Optional[str]]] = []
+    images: list[dict[str, str | None]] = []
     for tag in soup.find_all("img"):
         images.append({"src": tag.get("src"), "alt": tag.get("alt")})
 
@@ -126,8 +125,8 @@ def analyze_html(html: str, source: str = "<string>") -> AuditResult:
 
 
 def analyze_source(
-    url: Optional[str] = None,
-    file: Optional[str] = None,
+    url: str | None = None,
+    file: str | None = None,
     *,
     timeout: float = 10.0,
 ) -> AuditResult:
