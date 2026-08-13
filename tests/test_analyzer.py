@@ -84,6 +84,40 @@ def test_noindex_robots_fails(poor):
     assert "noindex" in finding.message.lower()
 
 
+def test_robots_none_directive_blocks_indexing():
+    # `<meta name="robots" content="none">` is defined by the spec as
+    # equivalent to `noindex, nofollow`, so it must fail like an explicit
+    # noindex rather than being scored as indexable.
+    result = analyze_html(
+        '<html><head><title>Hidden page for a private beta launch</title>'
+        '<meta name="robots" content="none"></head>'
+        '<body><h1>Hidden</h1></body></html>'
+    )
+    finding = _finding(result, "robots")
+    assert finding.status == FAIL
+    assert finding.score == 0
+
+
+def test_robots_word_boundary_not_matched_by_substring():
+    # A benign directive must not trip the noindex/nofollow substring heuristics.
+    result = analyze_html(
+        '<html><head><title>A perfectly indexable marketing page</title>'
+        '<meta name="robots" content="index, follow, max-snippet:-1">'
+        '</head><body><h1>Hi</h1></body></html>'
+    )
+    assert _finding(result, "robots").status == PASS
+
+
+def test_empty_html_scores_without_error():
+    # Malformed/empty input must degrade gracefully, not raise.
+    result = analyze_html("")
+    # Only the two "absence is fine" checks award points on an empty page:
+    # meta robots (no tag => indexable, 5) and image alt (no <img>, 10).
+    assert result.score == 15
+    assert result.grade == "F"
+    assert len(result.findings) == 9
+
+
 def test_multiple_h1_warns(poor):
     finding = _finding(poor, "headings")
     assert finding.status == WARN

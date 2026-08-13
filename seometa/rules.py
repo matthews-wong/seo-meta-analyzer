@@ -13,6 +13,7 @@ Status vocabulary:
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from typing import Callable, Optional
 
@@ -157,14 +158,20 @@ def check_canonical(page: PageData) -> Finding:
 def check_robots(page: PageData) -> Finding:
     """Meta robots must not silently block indexing."""
     weight = 5
-    robots = (page.robots or "").lower()
-    if "noindex" in robots:
+    robots = (page.robots or "").strip()
+    # Split on commas/whitespace so directives are matched as whole tokens, and
+    # honour the `none` shorthand, which the spec defines as `noindex, nofollow`.
+    tokens = {token for token in re.split(r"[\s,]+", robots.lower()) if token}
+    blocks_index = "noindex" in tokens or "none" in tokens
+    blocks_follow = "nofollow" in tokens or "none" in tokens
+    if blocks_index:
         return _finding(
             "robots", "Meta robots", FAIL, 0, weight,
-            f"Meta robots contains 'noindex' ({page.robots}).",
-            "Remove 'noindex' unless this page is intentionally hidden from search.",
+            f"Meta robots contains a 'noindex' directive ({page.robots}).",
+            "Remove the 'noindex'/'none' directive unless this page is "
+            "intentionally hidden from search.",
         )
-    if "nofollow" in robots:
+    if blocks_follow:
         return _finding(
             "robots", "Meta robots", WARN, weight * 0.5, weight,
             f"Meta robots contains 'nofollow' ({page.robots}).",
